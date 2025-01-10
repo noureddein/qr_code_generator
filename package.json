@@ -6,6 +6,7 @@
 	"type": "commonjs",
 	"scripts": {
 		"dev": "nodemon index.js",
+		"prod": "node index.js",
 		"start:server": "npm run dev",
 		"start:client": "cd .. && cd front-end && npm run dev",
 		"start:all": "concurrently \"npm run start:server\" \"npm run start:client\""
