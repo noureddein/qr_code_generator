@@ -4,6 +4,10 @@
 	"description": "",
 	"main": "index.js",
 	"type": "commonjs",
+	"engines": {
+		"node": "18.18.0",
+		"npm": "9.8.1"
+	},
 	"scripts": {
 		"dev": "nodemon index.js",
 		"prod": "node index.js",
