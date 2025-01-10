@@ -7,4 +7,5 @@ module.exports = {
 	access_secret_key: "ACCESS_TOKEN_SECRET",
 	refresh_secret_key: "REFRESH_TOKEN_SECRET",
 	salt_rounds: "SALT_ROUNDS",
+	front_prod_render: "FRONTEND_PROD_RENDER",
 };
