@@ -13,6 +13,9 @@ module.exports = function (app) {
 	app.use("/api/user", userRouter);
 	app.use("/api/auth", authRouter);
 	app.use("/api/qr-codes", qrCodesRouter);
+	app.use("/", (req, res) => {
+		return res.status(200).json({ message: "service is active" });
+	});
 
 	// Error logger
 	app.use(logger);
