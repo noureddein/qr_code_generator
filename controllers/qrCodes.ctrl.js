@@ -1,9 +1,13 @@
-const { QR_CODE_TYPE } = require("../constants");
+const { QR_CODE_TYPE, appEnv } = require("../constants");
 const { QrCodes } = require("../models/qrCodes.model");
 const { generateWithDefault } = require("../services/qrCodeGenerator.serv");
 const { customAlphabet } = require("nanoid");
 
-const DOMAIN = "http://localhost:5173/";
+const DOMAIN =
+	process.env.NODE_ENV === appEnv.PRODUCTION
+		? process.env.DOMAIN_NAME
+		: "http://localhost:5173/";
+
 const ALLOWED_STRINGS =
 	"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
