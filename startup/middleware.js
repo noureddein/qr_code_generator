@@ -29,15 +29,15 @@ module.exports = function (app) {
 		cookieParser(),
 	]);
 
-	if (appEnv.DEVELOPMENT === config.get("node_env")) {
-		debug("Morgan activated.");
-		app.use(
-			morgan("tiny"),
-			morgan("combined", {
-				stream: fs.createWriteStream(API_LOG_FILE_PATH, { flags: "a" }),
-			})
-		);
-	} else {
-		debug("Morgan deactivated.");
-	}
+	// if (appEnv.DEVELOPMENT === config.get("node_env")) {
+	debug("Morgan activated.");
+	app.use(
+		morgan("tiny")
+		// morgan("combined", {
+		// 	stream: fs.createWriteStream(API_LOG_FILE_PATH, { flags: "a" }),
+		// })
+	);
+	// } else {
+	// 	debug("Morgan deactivated.");
+	// }
 };
