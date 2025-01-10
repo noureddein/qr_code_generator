@@ -5,7 +5,7 @@ const { customAlphabet } = require("nanoid");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
-		? process.env.DOMAIN_NAME
+		? process.env.FRONTEND_PROD_RENDER
 		: "http://localhost:5173/";
 
 const ALLOWED_STRINGS =
