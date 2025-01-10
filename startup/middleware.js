@@ -15,8 +15,9 @@ module.exports = function (app) {
 	app.use([
 		cors({
 			origin: [
-				config.get("frontend_origin"),
-				config.get("frontend_prod_origin"),
+				process.env.FRONTEND_ORIGIN || config.get("frontend_origin"),
+				process.env.FRONTEND_PROD_ORIGIN ||
+					config.get("frontend_prod_origin"),
 			],
 			methods: "GET,POST,PUT,DELETE,OPTIONS", // Specify allowed methods
 			allowedHeaders: "Content-Type,Authorization",

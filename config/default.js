@@ -1,3 +1,3 @@
 module.exports = {
-	name: "My Vidly App - Default",
+	name: "QR Code Generator - Default",
 };
