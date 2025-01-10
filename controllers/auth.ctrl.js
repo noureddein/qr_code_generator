@@ -26,8 +26,10 @@ async function login(req, res) {
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
 		maxAge: REFRESH_TOKEN_EXPIRY_IN_MILLISECOND,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
+		// secure: process.env.NODE_ENV === "production",
+		// sameSite: "strict",
+		secure: true,
+		sameSite: "none",
 	});
 
 	return res.status(200).send({
