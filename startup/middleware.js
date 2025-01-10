@@ -9,16 +9,32 @@ const { appEnv, API_LOG_FILE_PATH } = require("../constants");
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
 
+// Allow localhost and your domain
+const allowedOrigins = [
+	process.env.FRONTEND_ORIGIN || config.get("frontend_origin"),
+	process.env.FRONTEND_PROD_ORIGIN || config.get("frontend_prod_origin"),
+];
+
+// [
+//     process.env.FRONTEND_ORIGIN || config.get("frontend_origin"),
+//     process.env.FRONTEND_PROD_ORIGIN ||
+//         config.get("frontend_prod_origin"),
+// ],
+
+console.log({ env: process.env, allowedOrigins });
+
 module.exports = function (app) {
 	/* Middleware */
 
 	app.use([
 		cors({
-			origin: [
-				process.env.FRONTEND_ORIGIN || config.get("frontend_origin"),
-				process.env.FRONTEND_PROD_ORIGIN ||
-					config.get("frontend_prod_origin"),
-			],
+			origin: function (origin, callback) {
+				if (!origin || allowedOrigins.includes(origin)) {
+					callback(null, true); // Allow the request
+				} else {
+					callback(new Error("Not allowed by CORS")); // Block the request
+				}
+			},
 			methods: "GET,POST,PUT,DELETE,OPTIONS", // Specify allowed methods
 			allowedHeaders: "Content-Type,Authorization",
 			credentials: true,
