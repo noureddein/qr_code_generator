@@ -17,7 +17,7 @@ async function save(req, res) {
 
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 
-	const publicLink = DOMAIN + nanoid();
+	const publicLink = `${DOMAIN}/${nanoid()}`;
 	const image = await generateWithDefault(publicLink);
 
 	const savedQRCode = await QrCodes.create({
