@@ -21,7 +21,7 @@ const REFRESH_TOKEN_EXPIRY_IN_SECONDS =
 const ACCESS_TOKEN_EXPIRY_IN_MILLISECOND = ms("15m");
 const ACCESS_TOKEN_EXPIRY_IN_SECONDs = ms("15m") / 1000;
 
-QR_CODE_TYPE = {
+const QR_CODE_TYPE = {
 	URL: "url",
 	VCARD: "vcard",
 	EMAIL: "email",

@@ -34,6 +34,16 @@ const qrCodeDefaultSchema = {
 			},
 		},
 	},
+	quietZone: {
+		exists: true,
+		isInt: {
+			errorMessage: "Invalid size value, Min. 200 and Max. 2000",
+			options: {
+				min: 0,
+				max: 200,
+			},
+		},
+	},
 };
 const urlGenerator = checkSchema({
 	text: {

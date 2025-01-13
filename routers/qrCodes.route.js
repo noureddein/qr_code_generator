@@ -26,6 +26,30 @@ router.put(
 );
 
 router.put(
+	"/vcard/:id",
+	[validation.qrCodes.vCardUpdateOne, validateRequest],
+	qrCodesController.vCardUpdateOne
+);
+
+router.put(
+	"/design/:id",
+	[validation.qrCodes.updateOneQRCodeDesign, validateRequest],
+	qrCodesController.updateOneQRCodeDesign
+);
+
+router.post(
+	"/design/generate",
+	[validation.qrCodes.qrCodeDesignGenerate, validateRequest],
+	qrCodesController.qrCodeDesignGenerate
+);
+
+router.get(
+	"/design/:id",
+	[validation.qrCodes.getOneQRCodeDesign, validateRequest],
+	qrCodesController.getOneQRCodeDesign
+);
+
+router.put(
 	"/activation/:id",
 	[validation.qrCodes.activationUpdateOne, validateRequest],
 	qrCodesController.activationUpdateOne

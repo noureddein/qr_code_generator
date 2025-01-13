@@ -1,37 +1,45 @@
 const { QR_CODE_TYPE, appEnv } = require("../constants");
 const { QrCodes } = require("../models/qrCodes.model");
-const { generateWithDefault } = require("../services/qrCodeGenerator.serv");
+const {
+	generateWithDefault,
+	generator,
+} = require("../services/qrCodeGenerator.serv");
 const { customAlphabet } = require("nanoid");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
 		? process.env.FRONTEND_PROD_RENDER
-		: "http://localhost:5173/";
+		: "http://localhost:5173";
 
 const ALLOWED_STRINGS =
 	"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 async function save(req, res) {
-	const { data, type, qrOptions } = req.body; // TODO: add qrOptions to validation
-	const { _id } = req.user;
-
+	const { qrData, text, type } = req.body; // TODO: add qrOptions to validation
+	const { _id: userId } = req.user;
+	const body = req.body;
+	console.log({ qrData });
+	// TODO: Check if nano id exist for same user
+	// TODO: Return error message to let user try again
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 
-	const publicLink = `${DOMAIN}/${nanoid()}`;
+	const nanoId = nanoid();
+	const publicLink = `${DOMAIN}/${nanoId}`;
 	const image = await generateWithDefault(publicLink);
 
 	const savedQRCode = await QrCodes.create({
-		data,
+		userId,
+		qrData,
 		type,
 		image,
-		userId: _id,
+		nanoId,
 		publicLink,
-		qrName: qrOptions.qrName,
+		qrDesign: {},
 	});
 
 	const result = await savedQRCode.save();
-
-	return res.status(200).json({ message: "Saved", result, publicLink });
+	const name = result.qrData.name;
+	return res.status(200).json({ message: `\"${name}\" saved` });
 }
 
 async function getMany(req, res) {
@@ -78,15 +86,15 @@ async function getOne(req, res) {
 async function urlUpdateOne(req, res) {
 	const { _id: userId } = req.user;
 	const { id: paramId } = req.params;
-	const { qrName, url } = req.body;
+	const { name, url } = req.body;
 
 	const result = await QrCodes.findOneAndUpdate(
-		{ _id: paramId, userId }, // Filter by the document's ID
+		{ _id: paramId, userId, type: QR_CODE_TYPE.URL }, // Filter by the document's ID
 		{
 			$set: {
-				qrName: qrName,
-				"data.qrName": qrName,
-				"data.url": url,
+				"qrData.name": name,
+				"qrData.url": url,
+				updatedAt: Date.now(),
 			},
 		},
 		{
@@ -100,7 +108,7 @@ async function urlUpdateOne(req, res) {
 	}
 	return res
 		.status(200)
-		.json({ message: `\"${result.qrName}\" QR code Updated.` });
+		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
 }
 
 async function activationUpdateOne(req, res) {
@@ -119,6 +127,146 @@ async function activationUpdateOne(req, res) {
 		.json({ message: `${qrCode.qrName} QR code status Updated.` });
 }
 
+async function vCardUpdateOne(req, res) {
+	const { _id: userId } = req.user;
+	const { id: paramId } = req.params;
+	const {
+		name,
+		firstName,
+		lastName,
+		organization,
+		position,
+		email,
+		website,
+		street,
+		country,
+		state,
+		city,
+		zipcode,
+		fax,
+		phoneWork,
+		phoneMobile,
+		text,
+	} = req.body;
+
+	const result = await QrCodes.findOneAndUpdate(
+		{ _id: paramId, userId, type: QR_CODE_TYPE.VCARD }, // Filter by the document's ID
+		{
+			$set: {
+				qrData: {
+					firstName,
+					lastName,
+					organization,
+					position,
+					email,
+					website,
+					street,
+					country,
+					state,
+					city,
+					zipcode,
+					fax,
+					phoneWork,
+					phoneMobile,
+					name,
+					text,
+				},
+				updatedAt: Date.now(),
+			},
+		},
+		{
+			new: true, // Return the updated document
+			runValidators: true, // Ensure validation rules are applied
+		}
+	);
+
+	if (!result) {
+		return res.status(404).json({ message: "QR Code not found." });
+	}
+	return res
+		.status(200)
+		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
+}
+
+async function updateOneQRCodeDesign(req, res) {
+	const { _id: userId } = req.user;
+	const { id } = req.params;
+	const { colorDark, colorLight, quietZoneColor, size, dots, quietZone } =
+		req.body;
+
+	const qrCode = await QrCodes.findOne({ _id: id, userId }).select(
+		"qrDesign publicLink"
+	);
+
+	const image = await generator({
+		colorDark,
+		colorLight,
+		quietZoneColor,
+		size,
+		dots,
+		quietZone,
+		text: qrCode.publicLink,
+	});
+
+	await qrCode.updateOne({
+		qrDesign: {
+			colorDark,
+			colorLight,
+			quietZoneColor,
+			size,
+			dots,
+			quietZone,
+		},
+		image,
+	});
+
+	return res.status(200).json({ message: "Design updated." });
+}
+
+async function getOneQRCodeDesign(req, res) {
+	const { _id: userId } = req.user;
+	const { id } = req.params;
+
+	const qrCode = await QrCodes.findOne({ _id: id, userId }).select(
+		"qrDesign image"
+	);
+
+	return res
+		.status(200)
+		.json({ qrCodeDesign: qrCode.qrDesign, image: qrCode.image });
+}
+
+async function qrCodeDesignGenerate(req, res) {
+	const { _id: userId } = req.user;
+	const { id, colorDark, colorLight, quietZoneColor, size, dots, quietZone } =
+		req.body;
+
+	const qrCode = await QrCodes.findOne({ _id: id, userId }).select(
+		"qrData publicLink"
+	);
+	const image = await generator({
+		colorDark,
+		colorLight,
+		quietZoneColor,
+		size,
+		dots,
+		quietZone,
+		text: qrCode.publicLink,
+	});
+
+	return res.status(200).json({
+		image,
+		qrDesign: {
+			colorDark,
+			colorLight,
+			quietZoneColor,
+			size,
+			dots,
+			quietZone,
+		},
+	});
+}
+
 module.exports = {
 	save,
 	getMany,
@@ -126,4 +274,8 @@ module.exports = {
 	getOne,
 	urlUpdateOne,
 	activationUpdateOne,
+	vCardUpdateOne,
+	updateOneQRCodeDesign,
+	getOneQRCodeDesign,
+	qrCodeDesignGenerate,
 };
