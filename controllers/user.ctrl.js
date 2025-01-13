@@ -28,6 +28,8 @@ async function register(req, res) {
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
 		maxAge: REFRESH_TOKEN_EXPIRY_IN_MILLISECOND,
+		secure: true,
+		sameSite: "none",
 	});
 
 	return res.status(200).send({

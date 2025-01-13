@@ -66,6 +66,8 @@ async function logout(req, res) {
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
 		maxAge: 0,
+		secure: true,
+		sameSite: "none",
 	});
 
 	return res.status(201).send();
