@@ -8,7 +8,7 @@ const { customAlphabet } = require("nanoid");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
-		? process.env.FRONTEND_PROD_RENDER
+		? process.env.FRONTEND_NETLIFY
 		: "http://localhost:5173";
 
 const ALLOWED_STRINGS =
