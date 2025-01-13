@@ -14,7 +14,13 @@ const allowedOrigins = [
 	process.env.FRONTEND_ORIGIN || config.get("frontend_origin"),
 	process.env.FRONTEND_PROD_ORIGIN || config.get("frontend_prod_origin"),
 	process.env.FRONTEND_PROD_RENDER || config.get("front_prod_render"),
+	process.env.FRONTEND_NETLIFY || config.get("front_end_netlify"),
+
+	...(process.env.NODE_ENV === appEnv.DEVELOPMENT
+		? ["http://localhost:3000"]
+		: []),
 ];
+console.log({ NODE_ENV: process.env.NODE_ENV, allowedOrigins });
 
 if (process.env.NODE_ENV === appEnv.PRODUCTION) {
 	console.log({ env: process.env, allowedOrigins });

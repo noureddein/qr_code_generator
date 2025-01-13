@@ -8,4 +8,5 @@ module.exports = {
 	refresh_secret_key: "REFRESH_TOKEN_SECRET",
 	salt_rounds: "SALT_ROUNDS",
 	front_prod_render: "FRONTEND_PROD_RENDER",
+	front_end_netlify: "FRONTEND_NETLIFY",
 };
