@@ -461,6 +461,106 @@ const qrCodeDesignGenerate = checkSchema({
 	},
 });
 
+const textUpdateOne = checkSchema({
+	authorization: {
+		in: ["headers"],
+		exists: true,
+	},
+	id: {
+		in: ["params"],
+		exists: true,
+		custom: {
+			options: (value) => {
+				return mongoose.Types.ObjectId.isValid(value);
+			},
+			errorMessage: "Invalid Object id.",
+		},
+	},
+	name: {
+		in: ["body"],
+		exists: true,
+	},
+	text: {
+		in: ["body"],
+		exists: {
+			errorMessage: "URL is required.",
+		},
+		isLength: {
+			options: { max: 2500, min: 0 },
+			errorMessage: "Text cannot exceed 2500 characters.",
+		},
+	},
+});
+
+const emailUpdateOne = checkSchema({
+	authorization: {
+		in: ["headers"],
+		exists: true,
+	},
+	id: {
+		in: ["params"],
+		exists: true,
+		custom: {
+			options: (value) => {
+				return mongoose.Types.ObjectId.isValid(value);
+			},
+			errorMessage: "Invalid Object id.",
+		},
+	},
+	name: {
+		in: ["body"],
+		exists: true,
+	},
+	message: {
+		in: ["body"],
+		exists: {
+			errorMessage: "Message is required.",
+		},
+		isLength: {
+			options: { max: 2500, min: 0 },
+			errorMessage: "Message cannot exceed 2500 characters.",
+		},
+	},
+	subject: {
+		in: ["body"],
+		exists: {
+			errorMessage: "Subject is required.",
+		},
+		isLength: {
+			options: { max: 256, min: 0 },
+			errorMessage: "Subject cannot exceed 256 characters.",
+		},
+	},
+	email: {
+		in: ["body"],
+		exists: {
+			errorMessage: "The email field is required.", // Ensures the key exists
+		},
+		trim: true, // Trim whitespace
+		toLowerCase: true, // Convert to lowercase
+		custom: {
+			options: (value) => {
+				// Allow empty strings or valid emails
+				return value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+			},
+			errorMessage: "Must be a valid email address or empty.",
+		},
+	},
+});
+
+const downloadVCard = checkSchema({
+	id: {
+		in: ["params"],
+		exists: true,
+		custom: {
+			options: (value) => {
+				return mongoose.Types.ObjectId.isValid(value);
+			},
+			errorMessage: "Invalid Object id.",
+		},
+	},
+});
+
 module.exports = {
 	save,
 	getMany,
@@ -472,4 +572,7 @@ module.exports = {
 	updateOneQRCodeDesign,
 	getOneQRCodeDesign,
 	qrCodeDesignGenerate,
+	textUpdateOne,
+	emailUpdateOne,
+	downloadVCard,
 };

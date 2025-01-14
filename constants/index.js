@@ -28,6 +28,51 @@ const QR_CODE_TYPE = {
 	TEXT: "text",
 };
 
+const url = {
+	name: "",
+	url: "",
+	text: "",
+};
+
+const text = {
+	name: "",
+	text: "",
+};
+
+const email = {
+	email: "",
+	subject: "",
+	message: "",
+	text: "",
+	name: "",
+};
+
+const vCard = {
+	name: "",
+	text: "",
+	firstName: "",
+	lastName: "",
+	organization: "",
+	position: "",
+	phoneWork: "",
+	phoneMobile: "",
+	fax: "",
+	email: "",
+	website: "",
+	street: "",
+	zipcode: "",
+	city: "",
+	state: "",
+	country: "",
+};
+
+const DEFAULT_QR_DATA = {
+	url,
+	text,
+	email,
+	vCard,
+};
+
 module.exports = {
 	appEnv,
 	API_LOG_FILE_PATH,
@@ -38,4 +83,5 @@ module.exports = {
 	ACCESS_TOKEN_EXPIRY_IN_MILLISECOND,
 	ACCESS_TOKEN_EXPIRY_IN_SECONDs,
 	QR_CODE_TYPE,
+	DEFAULT_QR_DATA,
 };

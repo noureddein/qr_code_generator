@@ -1,4 +1,5 @@
-const { QR_CODE_TYPE, appEnv } = require("../constants");
+const { QR_CODE_TYPE, appEnv, DEFAULT_QR_DATA } = require("../constants");
+const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
 const {
 	generateWithDefault,
@@ -15,21 +16,72 @@ const ALLOWED_STRINGS =
 	"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 async function save(req, res) {
-	const { qrData, text, type } = req.body; // TODO: add qrOptions to validation
+	const { qrData, type } = req.body;
 	const { _id: userId } = req.user;
-	const body = req.body;
-	console.log({ qrData });
-	// TODO: Check if nano id exist for same user
-	// TODO: Return error message to let user try again
-	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 
+	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 	const nanoId = nanoid();
 	const publicLink = `${DOMAIN}/${nanoId}`;
 	const image = await generateWithDefault(publicLink);
 
+	let dataToSave = {};
+
+	switch (type) {
+		case QR_CODE_TYPE.EMAIL:
+			dataToSave = {
+				email: qrData?.email || DEFAULT_QR_DATA.email.email,
+				subject: qrData?.subject || DEFAULT_QR_DATA.email.subject,
+				message: qrData?.message || DEFAULT_QR_DATA.email.message,
+				text: qrData?.text || DEFAULT_QR_DATA.email.text,
+				name: qrData?.name || DEFAULT_QR_DATA.email.name,
+			};
+			break;
+
+		case QR_CODE_TYPE.TEXT:
+			dataToSave = {
+				name: qrData.name || DEFAULT_QR_DATA.text.name,
+				text: qrData.text || DEFAULT_QR_DATA.text.text,
+			};
+			break;
+
+		case QR_CODE_TYPE.URL:
+			dataToSave = {
+				url: qrData?.url || DEFAULT_QR_DATA.url.url,
+				name: qrData?.name || DEFAULT_QR_DATA.url.name,
+				text: qrData?.text || DEFAULT_QR_DATA.url.text,
+			};
+			break;
+
+		case QR_CODE_TYPE.VCARD:
+			dataToSave = {
+				name: qrData?.name || DEFAULT_QR_DATA.vCard,
+				firstName: qrData?.firstName || DEFAULT_QR_DATA.vCard,
+				lastName: qrData?.lastName || DEFAULT_QR_DATA.vCard,
+				organization: qrData?.email || DEFAULT_QR_DATA.vCard,
+				position: qrData?.position || DEFAULT_QR_DATA.vCard,
+				phoneWork: qrData?.phoneWork || DEFAULT_QR_DATA.vCard,
+				phoneMobile: qrData?.phoneMobile || DEFAULT_QR_DATA.vCard,
+				fax: qrData?.fax || DEFAULT_QR_DATA.vCard,
+				email: qrData?.email || DEFAULT_QR_DATA.vCard,
+				website: qrData?.website || DEFAULT_QR_DATA.vCard,
+				street: qrData?.street || DEFAULT_QR_DATA.vCard,
+				zipcode: qrData?.zipcode || DEFAULT_QR_DATA.vCard,
+				city: qrData?.city || DEFAULT_QR_DATA.vCard,
+				state: qrData?.state || DEFAULT_QR_DATA.vCard,
+				country: qrData?.country || DEFAULT_QR_DATA.vCard,
+			};
+			dataToSave.text = createVCard(dataToSave).getFormattedString();
+			break;
+
+		default:
+			return res
+				.status(404)
+				.json({ message: "Type of qr code not exist" });
+	}
+
 	const savedQRCode = await QrCodes.create({
 		userId,
-		qrData,
+		qrData: dataToSave,
 		type,
 		image,
 		nanoId,
@@ -94,6 +146,7 @@ async function urlUpdateOne(req, res) {
 			$set: {
 				"qrData.name": name,
 				"qrData.url": url,
+				"qrData.text": url,
 				updatedAt: Date.now(),
 			},
 		},
@@ -146,7 +199,6 @@ async function vCardUpdateOne(req, res) {
 		fax,
 		phoneWork,
 		phoneMobile,
-		text,
 	} = req.body;
 
 	const result = await QrCodes.findOneAndUpdate(
@@ -169,7 +221,7 @@ async function vCardUpdateOne(req, res) {
 					phoneWork,
 					phoneMobile,
 					name,
-					text,
+					text: createVCard(req.body).getFormattedString(),
 				},
 				updatedAt: Date.now(),
 			},
@@ -267,6 +319,86 @@ async function qrCodeDesignGenerate(req, res) {
 	});
 }
 
+async function textUpdateOne(req, res) {
+	const { _id: userId } = req.user;
+	const { id: paramId } = req.params;
+	const { name, text } = req.body;
+
+	const result = await QrCodes.findOneAndUpdate(
+		{ _id: paramId, userId, type: QR_CODE_TYPE.TEXT }, // Filter by the document's ID
+		{
+			$set: {
+				"qrData.name": name,
+				"qrData.text": text,
+				updatedAt: Date.now(),
+			},
+		},
+		{
+			new: true, // Return the updated document
+			runValidators: true, // Ensure validation rules are applied
+		}
+	);
+
+	if (!result) {
+		return res.status(404).json({ message: "QR Code not found." });
+	}
+	return res
+		.status(200)
+		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
+}
+
+async function emailUpdateOne(req, res) {
+	const { _id: userId } = req.user;
+	const { id: paramId } = req.params;
+	const { email, message, name, subject } = req.body;
+	console.log({
+		userId,
+		paramId,
+	});
+	const result = await QrCodes.findOneAndUpdate(
+		{ _id: paramId, userId, type: QR_CODE_TYPE.EMAIL }, // Filter by the document's ID
+		{
+			$set: {
+				"qrData.name": name,
+				"qrData.email": email,
+				"qrData.subject": subject,
+				"qrData.message": message,
+				"qrData.text": `mailto:${email}?subject=${subject}&body=${message}`,
+				updatedAt: Date.now(),
+			},
+		},
+		{
+			new: true, // Return the updated document
+			runValidators: true, // Ensure validation rules are applied
+		}
+	);
+
+	if (!result) {
+		return res.status(404).json({ message: "QR Code not found." });
+	}
+	return res
+		.status(200)
+		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
+}
+
+async function downloadVCard(req, res) {
+	const { id } = req.params;
+
+	const qrCode = await QrCodes.findOne({
+		_id: id,
+		type: QR_CODE_TYPE.VCARD,
+	}).select("qrData");
+	console.log({ qrCode });
+
+	if (!qrCode) {
+		return res.status(404).json({ message: "vCard not found." });
+	}
+
+	const file = createVCard(qrCode).saveToFile(qrCode?.name || "vcard.vcf");
+
+	return res.status(200).json({ file });
+}
+
 module.exports = {
 	save,
 	getMany,
@@ -278,4 +410,7 @@ module.exports = {
 	updateOneQRCodeDesign,
 	getOneQRCodeDesign,
 	qrCodeDesignGenerate,
+	textUpdateOne,
+	emailUpdateOne,
+	downloadVCard,
 };
