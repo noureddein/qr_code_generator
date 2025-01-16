@@ -1,5 +1,6 @@
 const { checkSchema } = require("express-validator");
 const mongoose = require("mongoose");
+const { SORT_KEYS, QR_CODE_TYPE } = require("../constants");
 
 //TODO Validate all values when save
 const save = checkSchema({
@@ -20,6 +21,27 @@ const getMany = checkSchema({
 	authorization: {
 		in: ["headers"],
 		exists: true,
+	},
+	q: {
+		in: ["query"],
+		optional: true,
+		isString: true,
+	},
+	sort: {
+		in: ["query"],
+		optional: true,
+		isString: true,
+		default: {
+			options: SORT_KEYS.LAST_CREATED,
+		},
+	},
+	type: {
+		in: ["query"],
+		optional: true,
+		isString: true,
+		default: {
+			options: "",
+		},
 	},
 });
 

@@ -1,4 +1,9 @@
-const { QR_CODE_TYPE, appEnv, DEFAULT_QR_DATA } = require("../constants");
+const {
+	QR_CODE_TYPE,
+	appEnv,
+	DEFAULT_QR_DATA,
+	SORT_KEYS,
+} = require("../constants");
 const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
 const {
@@ -81,7 +86,10 @@ async function save(req, res) {
 
 	const savedQRCode = await QrCodes.create({
 		userId,
-		qrData: dataToSave,
+		qrData: {
+			...dataToSave,
+			name: dataToSave.name.toLowerCase(),
+		},
 		type,
 		image,
 		nanoId,
@@ -96,8 +104,33 @@ async function save(req, res) {
 
 async function getMany(req, res) {
 	const { _id } = req.user;
+	const { q = "", sort = "", type = "" } = req.query;
 
-	const rows = await QrCodes.find({ userId: _id });
+	let sortBy = {};
+	let filterBy = Object.values(QR_CODE_TYPE).includes(type) ? type : null;
+
+	switch (sort) {
+		case SORT_KEYS.LAST_CREATED:
+			sortBy = { createdAt: -1 };
+			break;
+
+		case SORT_KEYS.NAME_ASC:
+			sortBy = { "qrData.name": 1 };
+			break;
+
+		case SORT_KEYS.NAME_DESC:
+			sortBy = { "qrData.name": -1 };
+			break;
+
+		default:
+			sortBy = { createdAt: -1 }; // Default case
+			break;
+	}
+	const rows = await QrCodes.find({
+		userId: _id,
+		...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
+		...(!!filterBy && { type }),
+	}).sort(sortBy);
 	return res.status(200).json({ rows });
 }
 
@@ -144,7 +177,7 @@ async function urlUpdateOne(req, res) {
 		{ _id: paramId, userId, type: QR_CODE_TYPE.URL }, // Filter by the document's ID
 		{
 			$set: {
-				"qrData.name": name,
+				"qrData.name": name.toLowerCase(),
 				"qrData.url": url,
 				"qrData.text": url,
 				updatedAt: Date.now(),
@@ -220,7 +253,7 @@ async function vCardUpdateOne(req, res) {
 					fax,
 					phoneWork,
 					phoneMobile,
-					name,
+					name: name.toLowerCase(),
 					text: createVCard(req.body).getFormattedString(),
 				},
 				updatedAt: Date.now(),
@@ -328,7 +361,7 @@ async function textUpdateOne(req, res) {
 		{ _id: paramId, userId, type: QR_CODE_TYPE.TEXT }, // Filter by the document's ID
 		{
 			$set: {
-				"qrData.name": name,
+				"qrData.name": name.toLowerCase(),
 				"qrData.text": text,
 				updatedAt: Date.now(),
 			},
@@ -359,7 +392,7 @@ async function emailUpdateOne(req, res) {
 		{ _id: paramId, userId, type: QR_CODE_TYPE.EMAIL }, // Filter by the document's ID
 		{
 			$set: {
-				"qrData.name": name,
+				"qrData.name": name.toLowerCase(),
 				"qrData.email": email,
 				"qrData.subject": subject,
 				"qrData.message": message,

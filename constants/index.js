@@ -73,6 +73,12 @@ const DEFAULT_QR_DATA = {
 	vCard,
 };
 
+const SORT_KEYS = {
+	LAST_CREATED: "last_created",
+	NAME_ASC: "name_asc",
+	NAME_DESC: "name_desc",
+};
+
 module.exports = {
 	appEnv,
 	API_LOG_FILE_PATH,
@@ -84,4 +90,5 @@ module.exports = {
 	ACCESS_TOKEN_EXPIRY_IN_SECONDs,
 	QR_CODE_TYPE,
 	DEFAULT_QR_DATA,
+	SORT_KEYS,
 };
