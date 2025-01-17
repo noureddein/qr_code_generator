@@ -5,12 +5,6 @@ const validation = require("../validation/index");
 const { validateRequest } = require("../middleware/validate.middleware");
 const passport = require("passport");
 
-router.get(
-	"/download-vcard/:id",
-	[validation.qrCodes.downloadVCard, validateRequest],
-	qrCodesController.downloadVCard
-);
-
 router.use(passport.authenticate("jwt", { session: false }));
 
 router.post(
@@ -68,7 +62,7 @@ router.get(
 );
 
 router.put(
-	"/activation/:id",
+	"/activation",
 	[validation.qrCodes.activationUpdateOne, validateRequest],
 	qrCodesController.activationUpdateOne
 );
@@ -84,5 +78,9 @@ router.get(
 	[validation.qrCodes.getMany, validateRequest],
 	qrCodesController.getMany
 );
-
+router.post(
+	"/delete/bulk",
+	[validation.qrCodes.deleteMany, validateRequest],
+	qrCodesController.deleteMany
+);
 module.exports = router;

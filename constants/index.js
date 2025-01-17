@@ -79,6 +79,11 @@ const SORT_KEYS = {
 	NAME_DESC: "name_desc",
 };
 
+const STATUS_TYPE = {
+	ACTIVE: 1,
+	IN_ACTIVE: 2,
+};
+
 module.exports = {
 	appEnv,
 	API_LOG_FILE_PATH,
@@ -91,4 +96,5 @@ module.exports = {
 	QR_CODE_TYPE,
 	DEFAULT_QR_DATA,
 	SORT_KEYS,
+	STATUS_TYPE,
 };

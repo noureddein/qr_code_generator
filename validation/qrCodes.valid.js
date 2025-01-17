@@ -1,6 +1,6 @@
 const { checkSchema } = require("express-validator");
 const mongoose = require("mongoose");
-const { SORT_KEYS, QR_CODE_TYPE } = require("../constants");
+const { SORT_KEYS, QR_CODE_TYPE, STATUS_TYPE } = require("../constants");
 
 //TODO Validate all values when save
 const save = checkSchema({
@@ -312,14 +312,27 @@ const activationUpdateOne = checkSchema({
 		in: ["headers"],
 		exists: true,
 	},
-	id: {
-		in: ["params"],
+	ids: {
+		in: ["body"],
 		exists: true,
+		isArray: {
+			errorMessage: "Ids must be an array.",
+		},
 		custom: {
 			options: (value) => {
-				return mongoose.Types.ObjectId.isValid(value);
+				const isAllValuesValid = value.every((v) =>
+					mongoose.Types.ObjectId.isValid(v)
+				);
+				return isAllValuesValid;
 			},
 			errorMessage: "Invalid Object id.",
+		},
+	},
+	status: {
+		in: ["body"],
+		exists: true,
+		isBoolean: {
+			errorMessage: "Must be true or false",
 		},
 	},
 });
@@ -570,13 +583,23 @@ const emailUpdateOne = checkSchema({
 	},
 });
 
-const downloadVCard = checkSchema({
-	id: {
-		in: ["params"],
+const deleteMany = checkSchema({
+	authorization: {
+		in: ["headers"],
 		exists: true,
+	},
+	ids: {
+		in: ["body"],
+		exists: true,
+		isArray: {
+			errorMessage: "Ids must be array.",
+		},
 		custom: {
 			options: (value) => {
-				return mongoose.Types.ObjectId.isValid(value);
+				const isAllValuesValid = value.every((v) =>
+					mongoose.Types.ObjectId.isValid(v)
+				);
+				return isAllValuesValid;
 			},
 			errorMessage: "Invalid Object id.",
 		},
@@ -596,5 +619,5 @@ module.exports = {
 	qrCodeDesignGenerate,
 	textUpdateOne,
 	emailUpdateOne,
-	downloadVCard,
+	deleteMany,
 };

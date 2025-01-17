@@ -11,6 +11,7 @@ const {
 	generator,
 } = require("../services/qrCodeGenerator.serv");
 const { customAlphabet } = require("nanoid");
+const { ObjectId } = require("mongodb");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
@@ -195,22 +196,6 @@ async function urlUpdateOne(req, res) {
 	return res
 		.status(200)
 		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
-}
-
-async function activationUpdateOne(req, res) {
-	const { _id: userId } = req.user;
-	const { id: paramId } = req.params;
-
-	const qrCode = await QrCodes.findOne({ _id: paramId, userId }).select(
-		"-__v"
-	);
-
-	await qrCode.updateOne({
-		isActive: !qrCode.isActive,
-	});
-	return res
-		.status(200)
-		.json({ message: `${qrCode.qrName} QR code status Updated.` });
 }
 
 async function vCardUpdateOne(req, res) {
@@ -414,22 +399,43 @@ async function emailUpdateOne(req, res) {
 		.json({ message: `\"${result.qrData.name}\" QR code Updated.` });
 }
 
-async function downloadVCard(req, res) {
-	const { id } = req.params;
+async function activationUpdateOne(req, res) {
+	const { _id: userId } = req.user;
+	const { ids, status } = req.body;
 
-	const qrCode = await QrCodes.findOne({
-		_id: id,
-		type: QR_CODE_TYPE.VCARD,
-	}).select("qrData");
-	console.log({ qrCode });
+	const result = await QrCodes.updateMany(
+		{
+			_id: { $in: ids },
+			userId,
+		},
+		{
+			isActive: status,
+		}
+	);
 
-	if (!qrCode) {
-		return res.status(404).json({ message: "vCard not found." });
+	if (result.acknowledged) {
+		return res.status(200).json({ message: `QR codes status Updated.` });
+	} else {
+		return res.status(500).json({ message: "Unable to update status." });
 	}
+}
 
-	const file = createVCard(qrCode).saveToFile(qrCode?.name || "vcard.vcf");
+async function deleteMany(req, res) {
+	const { ids } = req.body;
+	const { _id: userId } = req.user;
+	const message =
+		ids.length > 1 ? "All selected QR codes deleted." : "QR code deleted.";
 
-	return res.status(200).json({ file });
+	const result = await QrCodes.deleteMany({
+		_id: { $in: ids },
+		userId,
+	});
+
+	if (result.acknowledged) {
+		return res.status(200).json({ message });
+	} else {
+		return res.status(500).json({ message: "Unable to delete." });
+	}
 }
 
 module.exports = {
@@ -445,5 +451,5 @@ module.exports = {
 	qrCodeDesignGenerate,
 	textUpdateOne,
 	emailUpdateOne,
-	downloadVCard,
+	deleteMany,
 };
