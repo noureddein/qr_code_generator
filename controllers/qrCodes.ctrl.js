@@ -25,6 +25,8 @@ async function save(req, res) {
 	const { qrData, type } = req.body;
 	const { _id: userId } = req.user;
 
+	console.log({ qrData });
+
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 	const nanoId = nanoid();
 	const publicLink = `${DOMAIN}/${nanoId}`;
@@ -60,23 +62,29 @@ async function save(req, res) {
 
 		case QR_CODE_TYPE.VCARD:
 			dataToSave = {
-				name: qrData?.name || DEFAULT_QR_DATA.vCard,
-				firstName: qrData?.firstName || DEFAULT_QR_DATA.vCard,
-				lastName: qrData?.lastName || DEFAULT_QR_DATA.vCard,
-				organization: qrData?.email || DEFAULT_QR_DATA.vCard,
-				position: qrData?.position || DEFAULT_QR_DATA.vCard,
-				phoneWork: qrData?.phoneWork || DEFAULT_QR_DATA.vCard,
-				phoneMobile: qrData?.phoneMobile || DEFAULT_QR_DATA.vCard,
-				fax: qrData?.fax || DEFAULT_QR_DATA.vCard,
-				email: qrData?.email || DEFAULT_QR_DATA.vCard,
-				website: qrData?.website || DEFAULT_QR_DATA.vCard,
-				street: qrData?.street || DEFAULT_QR_DATA.vCard,
-				zipcode: qrData?.zipcode || DEFAULT_QR_DATA.vCard,
-				city: qrData?.city || DEFAULT_QR_DATA.vCard,
-				state: qrData?.state || DEFAULT_QR_DATA.vCard,
-				country: qrData?.country || DEFAULT_QR_DATA.vCard,
+				name: qrData?.name || DEFAULT_QR_DATA.vCard.name,
+				firstName: qrData?.firstName || DEFAULT_QR_DATA.vCard.firstName,
+				lastName: qrData?.lastName || DEFAULT_QR_DATA.vCard.lastName,
+				organization:
+					qrData?.organization || DEFAULT_QR_DATA.vCard.organization,
+				position: qrData?.position || DEFAULT_QR_DATA.vCard.position,
+				phoneWork: qrData?.phoneWork || DEFAULT_QR_DATA.vCard.phoneWork,
+				phoneMobile:
+					qrData?.phoneMobile || DEFAULT_QR_DATA.vCard.phoneMobile,
+				fax: qrData?.fax || DEFAULT_QR_DATA.vCard.fax,
+				email: qrData?.email || DEFAULT_QR_DATA.vCard.email,
+				website: qrData?.website || DEFAULT_QR_DATA.vCard.website,
+				street: qrData?.street || DEFAULT_QR_DATA.vCard.street,
+				zipcode: qrData?.zipcode || DEFAULT_QR_DATA.vCard.zipcode,
+				city: qrData?.city || DEFAULT_QR_DATA.vCard.city,
+				state: qrData?.state || DEFAULT_QR_DATA.vCard.state,
+				country: qrData?.country || DEFAULT_QR_DATA.vCard.country,
+				imageBase64:
+					qrData?.imageBase64 || DEFAULT_QR_DATA.vCard.imageBase64,
+				imageType: qrData?.imageType || DEFAULT_QR_DATA.vCard.imageType,
+				text: qrData?.text || DEFAULT_QR_DATA.vCard.text,
 			};
-			dataToSave.text = createVCard(dataToSave).getFormattedString();
+
 			break;
 
 		default:
@@ -101,6 +109,7 @@ async function save(req, res) {
 	const result = await savedQRCode.save();
 	const name = result.qrData.name;
 	return res.status(200).json({ message: `\"${name}\" saved` });
+	res.status(200).send({ message: "Received" });
 }
 
 async function getMany(req, res) {

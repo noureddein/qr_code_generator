@@ -5,6 +5,9 @@ const validation = require("../validation/index");
 const { validateRequest } = require("../middleware/validate.middleware");
 const passport = require("passport");
 
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
+
 router.use(passport.authenticate("jwt", { session: false }));
 
 router.post(

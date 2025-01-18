@@ -64,6 +64,8 @@ const vCard = {
 	city: "",
 	state: "",
 	country: "",
+	imageBase64: "",
+	imageType: "",
 };
 
 const DEFAULT_QR_DATA = {
