@@ -12,4 +12,11 @@ const validateRequest = (req, res, next) => {
 	next();
 };
 
+const validatePDFFile = (req, res, next) => {
+	req.body.file = req.file;
+
+	next();
+};
+
 module.exports.validateRequest = validateRequest;
+module.exports.validatePDFFile = validatePDFFile;

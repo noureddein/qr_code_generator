@@ -11,7 +11,12 @@ const {
 	generator,
 } = require("../services/qrCodeGenerator.serv");
 const { customAlphabet } = require("nanoid");
-const { ObjectId } = require("mongodb");
+const {
+	fileUploader,
+	deleteUploadedFile,
+} = require("../services/cloudinary.serv");
+const _omit = require("lodash/omit");
+const { removeUploadedFiles } = require("../services/removeFiles.ser");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
@@ -24,8 +29,6 @@ const ALLOWED_STRINGS =
 async function save(req, res) {
 	const { qrData, type } = req.body;
 	const { _id: userId } = req.user;
-
-	console.log({ qrData });
 
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 	const nanoId = nanoid();
@@ -90,7 +93,7 @@ async function save(req, res) {
 		default:
 			return res
 				.status(404)
-				.json({ message: "Type of qr code not exist" });
+				.json({ message: "Type of qr code not supported" });
 	}
 
 	const savedQRCode = await QrCodes.create({
@@ -109,7 +112,6 @@ async function save(req, res) {
 	const result = await savedQRCode.save();
 	const name = result.qrData.name;
 	return res.status(200).json({ message: `\"${name}\" saved` });
-	res.status(200).send({ message: "Received" });
 }
 
 async function getMany(req, res) {
@@ -175,6 +177,12 @@ async function getOne(req, res) {
 		return res.status(404).json({ message: "QR Code not found." });
 	}
 
+	if (qrCode.type === QR_CODE_TYPE.PDF) {
+		return res
+			.status(200)
+			.json({ row: _omit(qrCode, "qrData.pdfUploadResult") });
+	}
+
 	return res.status(200).json({ row: qrCode });
 }
 
@@ -226,6 +234,9 @@ async function vCardUpdateOne(req, res) {
 		fax,
 		phoneWork,
 		phoneMobile,
+		imageBase64,
+		imageType,
+		text,
 	} = req.body;
 
 	const result = await QrCodes.findOneAndUpdate(
@@ -248,7 +259,10 @@ async function vCardUpdateOne(req, res) {
 					phoneWork,
 					phoneMobile,
 					name: name.toLowerCase(),
-					text: createVCard(req.body).getFormattedString(),
+					imageBase64:
+						imageBase64 || DEFAULT_QR_DATA.vCard.imageBase64,
+					imageType: imageType || DEFAULT_QR_DATA.vCard.imageType,
+					text: text || DEFAULT_QR_DATA.vCard.text,
 				},
 				updatedAt: Date.now(),
 			},
@@ -378,10 +392,7 @@ async function emailUpdateOne(req, res) {
 	const { _id: userId } = req.user;
 	const { id: paramId } = req.params;
 	const { email, message, name, subject } = req.body;
-	console.log({
-		userId,
-		paramId,
-	});
+
 	const result = await QrCodes.findOneAndUpdate(
 		{ _id: paramId, userId, type: QR_CODE_TYPE.EMAIL }, // Filter by the document's ID
 		{
@@ -435,16 +446,123 @@ async function deleteMany(req, res) {
 	const message =
 		ids.length > 1 ? "All selected QR codes deleted." : "QR code deleted.";
 
+	const pdfQrCodeRecords = await QrCodes.find({
+		_id: { $in: ids },
+		type: QR_CODE_TYPE.PDF,
+	}).select("qrData");
+
+	if (pdfQrCodeRecords.length > 0) {
+		const publicIds = pdfQrCodeRecords.map(
+			(pdf) => pdf.qrData.pdfUploadResult.public_id
+		);
+		const createRequests = publicIds.map((id) => deleteUploadedFile(id));
+		await Promise.all(createRequests);
+	}
+
 	const result = await QrCodes.deleteMany({
 		_id: { $in: ids },
 		userId,
 	});
 
-	if (result.acknowledged) {
+	if (result?.acknowledged) {
 		return res.status(200).json({ message });
 	} else {
 		return res.status(500).json({ message: "Unable to delete." });
 	}
+}
+
+async function insertOnePDF(req, res) {
+	const { _id: userId } = req.user;
+	const { name } = req.body;
+
+	const file = req.body.file;
+
+	// TODO: Remove file from /uploads
+	const uploadResponse = await fileUploader(
+		process.cwd() + "/uploads/" + file.filename
+	);
+
+	removeUploadedFiles([file.filename]);
+
+	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
+	const nanoIdKey = nanoid();
+	const publicLink = `${DOMAIN}/${nanoIdKey}`;
+	const image = await generateWithDefault(publicLink);
+
+	const savedQRCode = await QrCodes.create({
+		userId,
+		qrData: {
+			name,
+			text: uploadResponse.secure_url,
+			pdfUploadResult: uploadResponse,
+		},
+		type: QR_CODE_TYPE.PDF,
+		image,
+		nanoId: nanoIdKey,
+		publicLink,
+		qrDesign: {},
+	});
+
+	const result = await savedQRCode.save();
+	const qrName = result.qrData.name;
+
+	return res.status(200).json({ message: `\"${qrName}\" saved` });
+}
+
+async function updateOnePDF(req, res) {
+	const { _id: userId } = req.user;
+	const { id: paramId } = req.params;
+	const { name } = req.body;
+
+	const file = req.file;
+	const qrCodeRecord = await QrCodes.findOne({
+		userId,
+		_id: paramId,
+		type: QR_CODE_TYPE.PDF,
+	});
+
+	if (!qrCodeRecord) {
+		return res.status(404).json({ message: "QR Code not found." });
+	}
+
+	let dataToSave = {
+		"qrData.name": name,
+	};
+
+	if (file) {
+		const uploadResponse = await fileUploader(
+			process.cwd() + "/uploads/" + file.filename
+		);
+
+		// Remove old file
+		await deleteUploadedFile(qrCodeRecord.qrData.pdfUploadResult.public_id);
+
+		removeUploadedFiles([file.filename]);
+
+		dataToSave = {
+			...dataToSave,
+			"qrData.text": uploadResponse.secure_url,
+			"qrData.pdfUploadResult": uploadResponse,
+		};
+	}
+
+	const result = await QrCodes.findOneAndUpdate(
+		{ _id: paramId, userId, type: QR_CODE_TYPE.PDF }, // Filter by the document's ID
+		{
+			$set: {
+				...dataToSave,
+				updatedAt: Date.now(),
+			},
+		},
+		{
+			new: true, // Return the updated document
+			runValidators: true, // Ensure validation rules are applied
+		}
+	).select("qrData");
+
+	return res
+		.status(200)
+		.json({ message: `\"${result.qrData.name}\" updated.` });
 }
 
 module.exports = {
@@ -461,4 +579,6 @@ module.exports = {
 	textUpdateOne,
 	emailUpdateOne,
 	deleteMany,
+	insertOnePDF,
+	updateOnePDF,
 };

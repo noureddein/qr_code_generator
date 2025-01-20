@@ -9,4 +9,7 @@ module.exports = {
 	salt_rounds: "SALT_ROUNDS",
 	front_prod_render: "FRONTEND_PROD_RENDER",
 	front_end_netlify: "FRONTEND_NETLIFY",
+	cloud_name: "QR_CODE_CLOUD_NAME",
+	cloud_api_key: "QR_CODE_API_KEY",
+	cloud_api_secret: "QR_CODE_API_SECRET",
 };

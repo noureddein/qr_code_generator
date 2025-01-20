@@ -43,7 +43,7 @@ module.exports = function (app) {
 			credentials: true,
 		}),
 		express.urlencoded({ extended: true }),
-		express.json({ extended: true, limit: "50mb" }), // To convert any req to JSON
+		express.json({ extended: true, limit: "5mb" }), // To convert any req to JSON
 		helmet(),
 		passport.initialize(),
 		cookieParser(),

@@ -26,6 +26,7 @@ const QR_CODE_TYPE = {
 	VCARD: "vcard",
 	EMAIL: "email",
 	TEXT: "text",
+	PDF: "pdf",
 };
 
 const url = {
@@ -68,11 +69,17 @@ const vCard = {
 	imageType: "",
 };
 
+const pdf = {
+	name: "",
+	text: "",
+};
+
 const DEFAULT_QR_DATA = {
 	url,
 	text,
 	email,
 	vCard,
+	pdf,
 };
 
 const SORT_KEYS = {

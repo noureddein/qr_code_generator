@@ -4,7 +4,7 @@ const winston = require("winston");
 
 module.exports = async function (err, req, res, next) {
 	try {
-		console.log("------------>", err.message);
+		console.log("------------>", err);
 		// error
 		// warn
 		// info

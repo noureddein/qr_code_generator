@@ -2,13 +2,25 @@ const express = require("express");
 const router = express.Router();
 const qrCodesController = require("../controllers/qrCodes.ctrl");
 const validation = require("../validation/index");
-const { validateRequest } = require("../middleware/validate.middleware");
+const {
+	validateRequest,
+	validatePDFFile,
+} = require("../middleware/validate.middleware");
 const passport = require("passport");
-
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const { upload } = require("../middleware/multer.middleware");
 
 router.use(passport.authenticate("jwt", { session: false }));
+
+router.post(
+	"/save/pdf",
+	[
+		upload.single("file"),
+		validatePDFFile,
+		validation.qrCodes.savePDF,
+		validateRequest,
+	],
+	qrCodesController.insertOnePDF
+);
 
 router.post(
 	"/save",
@@ -44,6 +56,17 @@ router.put(
 	"/email/:id",
 	[validation.qrCodes.emailUpdateOne, validateRequest],
 	qrCodesController.emailUpdateOne
+);
+
+router.put(
+	"/pdf/:id",
+	[
+		upload.single("file"),
+		validatePDFFile,
+		validation.qrCodes.updateOnePDF,
+		validateRequest,
+	],
+	qrCodesController.updateOnePDF
 );
 
 router.put(

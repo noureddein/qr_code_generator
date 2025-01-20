@@ -1,6 +1,9 @@
 const { checkSchema } = require("express-validator");
 const mongoose = require("mongoose");
 const { SORT_KEYS, QR_CODE_TYPE, STATUS_TYPE } = require("../constants");
+const isBase64 = require("is-base64");
+
+const MAX_PDF_FILE_SIZE = 5 * 1024 * 1024;
 
 //TODO Validate all values when save
 const save = checkSchema({
@@ -305,6 +308,28 @@ const vCardUpdateOne = checkSchema({
 		isString: true,
 		isEmpty: false,
 	},
+	imageBase64: {
+		in: ["body"],
+		exists: {
+			errorMessage: "The imageBase64 field is required.",
+		},
+		trim: true,
+		optional: {
+			options: { nullable: true, checkFalsy: true }, // Allows null or empty values
+		},
+		custom: {
+			errorMessage: "Invalid base64 image.",
+			options: (value) => {
+				if (value) {
+					return isBase64(value, {
+						allowMime: true,
+						mimeRequired: true,
+					});
+				}
+				return true;
+			},
+		},
+	},
 });
 
 const activationUpdateOne = checkSchema({
@@ -514,6 +539,7 @@ const textUpdateOne = checkSchema({
 	name: {
 		in: ["body"],
 		exists: true,
+		trim: true,
 	},
 	text: {
 		in: ["body"],
@@ -606,6 +632,76 @@ const deleteMany = checkSchema({
 	},
 });
 
+const savePDF = checkSchema({
+	authorization: {
+		in: ["headers"],
+		exists: true,
+	},
+	name: {
+		in: ["body"],
+		exists: true,
+		trim: true,
+		toLowerCase: true,
+	},
+	file: {
+		in: ["body"],
+		custom: {
+			options: (file) => {
+				if (!file) {
+					throw new Error("PDF file is required.");
+				}
+				if (file.mimetype !== "application/pdf") {
+					throw new Error("File must be a valid PDF.");
+				}
+				if (file.size > MAX_PDF_FILE_SIZE) {
+					throw new Error("File size must not exceed 5MB.");
+				}
+				return true;
+			},
+		},
+	},
+});
+
+const updateOnePDF = checkSchema({
+	authorization: {
+		in: ["headers"],
+		exists: true,
+	},
+	name: {
+		in: ["body"],
+		exists: true,
+		trim: true,
+		toLowerCase: true,
+	},
+	file: {
+		in: ["body"],
+		custom: {
+			options: (file) => {
+				if (file) {
+					if (file.mimetype !== "application/pdf") {
+						throw new Error("File must be a valid PDF");
+					}
+
+					if (file.size > MAX_PDF_FILE_SIZE) {
+						throw new Error("File size must not exceed 5MB");
+					}
+				}
+				return true;
+			},
+		},
+	},
+	id: {
+		in: ["params"],
+		exists: true,
+		custom: {
+			options: (value) => {
+				return mongoose.Types.ObjectId.isValid(value);
+			},
+			errorMessage: "Invalid Object id.",
+		},
+	},
+});
+
 module.exports = {
 	save,
 	getMany,
@@ -620,4 +716,6 @@ module.exports = {
 	textUpdateOne,
 	emailUpdateOne,
 	deleteMany,
+	savePDF,
+	updateOnePDF,
 };
