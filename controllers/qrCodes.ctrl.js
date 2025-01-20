@@ -6,10 +6,7 @@ const {
 } = require("../constants");
 const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
-const {
-	generateWithDefault,
-	generator,
-} = require("../services/qrCodeGenerator.serv");
+const { generator } = require("../services/qrCodeGenerator.serv");
 const { customAlphabet } = require("nanoid");
 const {
 	fileUploader,
@@ -33,7 +30,7 @@ async function save(req, res) {
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 	const nanoId = nanoid();
 	const publicLink = `${DOMAIN}/${nanoId}`;
-	const image = await generateWithDefault(publicLink);
+	const image = await generator({ text: publicLink });
 
 	let dataToSave = {};
 
@@ -292,12 +289,14 @@ async function updateOneQRCodeDesign(req, res) {
 	);
 
 	const image = await generator({
-		colorDark,
-		colorLight,
-		quietZoneColor,
-		size,
-		dots,
-		quietZone,
+		optionsProps: {
+			colorDark,
+			colorLight,
+			quietZoneColor,
+			size,
+			dots,
+			quietZone,
+		},
 		text: qrCode.publicLink,
 	});
 
@@ -338,12 +337,14 @@ async function qrCodeDesignGenerate(req, res) {
 		"qrData publicLink"
 	);
 	const image = await generator({
-		colorDark,
-		colorLight,
-		quietZoneColor,
-		size,
-		dots,
-		quietZone,
+		optionsProps: {
+			colorDark,
+			colorLight,
+			quietZoneColor,
+			size,
+			dots,
+			quietZone,
+		},
 		text: qrCode.publicLink,
 	});
 
@@ -487,7 +488,7 @@ async function insertOnePDF(req, res) {
 	const nanoid = customAlphabet(ALLOWED_STRINGS, 10);
 	const nanoIdKey = nanoid();
 	const publicLink = `${DOMAIN}/${nanoIdKey}`;
-	const image = await generateWithDefault(publicLink);
+	const image = await generator({ text: publicLink });
 
 	const savedQRCode = await QrCodes.create({
 		userId,

@@ -424,10 +424,10 @@ const updateOneQRCodeDesign = checkSchema({
 	quietZone: {
 		exists: true,
 		isInt: {
-			errorMessage: "Invalid size value, Min. 200 and Max. 2000",
+			errorMessage: "Invalid size value, Min. 0 and Max. 1000",
 			options: {
 				min: 0,
-				max: 200,
+				max: 1000,
 			},
 		},
 	},
@@ -512,10 +512,10 @@ const qrCodeDesignGenerate = checkSchema({
 	quietZone: {
 		exists: true,
 		isInt: {
-			errorMessage: "Invalid size value, Min. 200 and Max. 2000",
+			errorMessage: "Invalid size value, Min. 0 and Max. 1000",
 			options: {
 				min: 0,
-				max: 200,
+				max: 1000,
 			},
 		},
 	},

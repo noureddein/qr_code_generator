@@ -20,7 +20,9 @@ const qrDesignSchema = new mongoose.Schema({
 	},
 	quietZone: {
 		type: Number,
-		default: 20,
+		default: 100,
+		min: 0,
+		max: 1000,
 	},
 	dots: {
 		type: Number,

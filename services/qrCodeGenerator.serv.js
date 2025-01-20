@@ -1,29 +1,42 @@
 const QRCode = require("easyqrcodejs-nodejs");
 const hexToRgba = require("hex-to-rgba");
 
-const generator = async (optionsProps) => {
+function calculateQuietZone(qrCodeSize, moduleCount) {
+	const moduleSize = qrCodeSize / moduleCount; // Calculate module size
+	const quietZone = moduleSize * 4; // Quiet Zone = 4 × Module Size
+	return quietZone;
+}
+
+const generator = async ({ text, optionsProps = {} }) => {
 	try {
-		const { size, quietZoneColor, dots = 1, ...rest } = optionsProps;
-		const options = {
-			...rest,
-			quietZoneColor: hexToRgba(quietZoneColor),
-			width: size,
-			height: size,
-
-			// ====== dotScale
-			dotScale: dots, // For body block, must be greater than 0, less than or equal to 1. default is 1
-
-			dotScaleTiming: dots, // Dafault for timing block , must be greater than 0, less than or equal to 1. default is 1
-			dotScaleTiming_H: dots, // For horizontal timing block, must be greater than 0, less than or equal to 1. default is 1
-			dotScaleTiming_V: dots, // For vertical timing block, must be greater than 0, less than or equal to 1. default is 1
-
-			dotScaleA: dots, // Dafault for alignment block, must be greater than 0, less than or equal to 1. default is 1
-			dotScaleAO: dots, // For alignment outer block, must be greater than 0, less than or equal to 1. default is 1
-			dotScaleAI: dots, // For alignment inner block, must be greater than 0, less than or equal to 1. default is 1
+		if (!text) {
+			throw new Error("QR code text is falsy.");
+		}
+		const quietZone = calculateQuietZone(
+			optionsProps.size,
+			optionsProps.size / 10
+		);
+		const dots = optionsProps?.dots || 1;
+		const SIZE = optionsProps?.size || 1000;
+		const option = {
+			quietZone,
+			text,
+			colorDark: "#000000",
+			colorLight: "#ffffff",
+			quietZoneColor: "#ffffff",
+			width: SIZE,
+			height: SIZE,
+			dots: dots,
+			dotScale: dots,
+			dotScaleTiming: dots,
+			dotScaleTiming_H: dots,
+			dotScaleTiming_V: dots,
+			dotScaleA: dots,
+			dotScaleAO: dots,
+			dotScaleAI: dots,
+			...optionsProps,
 		};
-		console.log({ options });
-
-		const qrcode = new QRCode(options);
+		const qrcode = new QRCode(option);
 		const data = await qrcode.toDataURL();
 		return data;
 	} catch (error) {
@@ -32,22 +45,4 @@ const generator = async (optionsProps) => {
 	}
 };
 
-const generateWithDefault = async (publicLink) => {
-	try {
-		// const { size, quietZoneColor, ...rest } = optionsProps;
-		// const options = {
-		// 	...rest,
-		// 	quietZoneColor: hexToRgba(quietZoneColor),
-		// 	width: size,
-		// 	height: size,
-		// };
-		const qrcode = new QRCode({ text: publicLink });
-		const data = await qrcode.toDataURL();
-		return data;
-	} catch (error) {
-		throw error;
-	}
-};
-
 module.exports.generator = generator;
-module.exports.generateWithDefault = generateWithDefault;
