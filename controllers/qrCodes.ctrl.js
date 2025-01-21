@@ -6,7 +6,7 @@ const {
 } = require("../constants");
 const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
-const { generator } = require("../services/qrCodeGenerator.serv");
+const { generator } = require("../lib/qrCodeGenerator.lib");
 const { customAlphabet } = require("nanoid");
 const {
 	fileUploader,

@@ -1,4 +1,4 @@
-const generator = require("../services/qrCodeGenerator.serv");
+const generator = require("../lib/qrCodeGenerator.lib");
 
 async function generateQRCode(req, res) {
 	const data = await generator(req.body);
