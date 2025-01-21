@@ -12,4 +12,9 @@ module.exports = {
 	cloud_name: "QR_CODE_CLOUD_NAME",
 	cloud_api_key: "QR_CODE_API_KEY",
 	cloud_api_secret: "QR_CODE_API_SECRET",
+
+	auth0_base_url: "QR_CODE_BASE_URL",
+	auth0_client_id: "QR_CODE_CLIENT_ID",
+	auth0_issuer_base_url: "QR_CODE_ISSUER_BASE_URL",
+	auth0_secret: "QR_CODE_SECRET",
 };

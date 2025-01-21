@@ -8,6 +8,8 @@ const cors = require("cors");
 const { appEnv, API_LOG_FILE_PATH } = require("../constants");
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
+// const { auth } = require("express-openid-connect");
+const { auth, requiredScopes } = require("express-oauth2-jwt-bearer");
 
 // Allow localhost and your domain
 const allowedOrigins = [
@@ -25,6 +27,26 @@ console.log({ NODE_ENV: process.env.NODE_ENV, allowedOrigins });
 if (process.env.NODE_ENV === appEnv.PRODUCTION) {
 	console.log({ env: process.env, allowedOrigins });
 }
+
+const authConfig = {
+	authRequired: false,
+	auth0Logout: true,
+	baseURL: config.get("auth0_base_url"),
+	clientID: config.get("auth0_client_id"),
+	issuerBaseURL: config.get("auth0_issuer_base_url"),
+	secret: config.get("auth0_secret"),
+	authorizationParams: {
+		response_type: "code", // Ensure this includes 'id_token'
+		scope: "openid profile email", // Include 'openid'
+		audience: "http://localhost:5173",
+	},
+};
+
+const checkJwt = auth({
+	audience: "http://localhost:5173",
+	issuerBaseURL: config.get("auth0_issuer_base_url"),
+});
+// console.log({ authConfig });
 
 module.exports = function (app) {
 	/* Middleware */
@@ -47,6 +69,7 @@ module.exports = function (app) {
 		helmet(),
 		passport.initialize(),
 		cookieParser(),
+		// auth(authConfig),
 	]);
 
 	// if (appEnv.DEVELOPMENT === config.get("node_env")) {
@@ -61,3 +84,5 @@ module.exports = function (app) {
 	// 	debug("Morgan deactivated.");
 	// }
 };
+
+module.exports.checkJwt = checkJwt;
