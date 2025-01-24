@@ -93,6 +93,11 @@ const STATUS_TYPE = {
 	IN_ACTIVE: 2,
 };
 
+const STORAGE_FOLDERS_NAME = {
+	ICONS: "qr_code_icons",
+	ASSETS: "qr_code_prod_assets",
+};
+
 module.exports = {
 	appEnv,
 	API_LOG_FILE_PATH,
@@ -106,4 +111,5 @@ module.exports = {
 	DEFAULT_QR_DATA,
 	SORT_KEYS,
 	STATUS_TYPE,
+	STORAGE_FOLDERS_NAME,
 };

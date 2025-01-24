@@ -1,11 +1,6 @@
 const cloudinary = require("cloudinary").v2;
 const config = require("config");
-
-console.log({
-	cloud_name: config.get("cloud_name"),
-	cloud_api_key: config.get("cloud_api_key"),
-	cloud_api_secret: config.get("cloud_api_secret"),
-});
+const { STORAGE_FOLDERS_NAME } = require("../constants");
 
 cloudinary.config({
 	cloud_name: config.get("cloud_name"),
@@ -14,7 +9,7 @@ cloudinary.config({
 });
 
 const opts = {
-	folder: "qr_code",
+	folder: STORAGE_FOLDERS_NAME.ASSETS,
 	resource_type: "image",
 	type: "upload",
 };
@@ -56,8 +51,8 @@ const deleteUploadedFile = async (publicId) => {
 const fetchResources = async (folder) => {
 	try {
 		const response = await cloudinary.api.resources({
+			prefix: folder,
 			type: "upload",
-			folder: "qr_code_icons",
 		});
 		return response;
 	} catch (error) {

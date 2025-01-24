@@ -9,51 +9,62 @@ const { isDevelopmentMode } = require("../lib/envMode.lib");
     We can use joi-password-complexity package to check password complexity
 */
 
-const userSchema = new mongoose.Schema({
-	firstName: {
-		type: String,
-		required: true,
-		lowercase: true,
-		trim: true,
-		minLength: 5,
-		maxLength: 50,
+const userSchema = new mongoose.Schema(
+	{
+		firstName: {
+			type: String,
+			required: true,
+			lowercase: true,
+			trim: true,
+			minLength: 5,
+			maxLength: 50,
+		},
+		lastName: {
+			type: String,
+			required: true,
+			lowercase: true,
+			trim: true,
+			minLength: 5,
+			maxLength: 50,
+		},
+		username: {
+			type: String,
+			required: true,
+			lowercase: true,
+			trim: true,
+			minLength: 5,
+			maxLength: 50,
+			unique: true,
+		},
+		email: {
+			type: String,
+			required: true,
+			unique: true,
+			trim: true,
+			lowercase: true,
+			maxLength: 255,
+		},
+		password: {
+			type: String,
+			required: true,
+			minLength: 8,
+			maxLength: 1024,
+		},
+		isDevelopmentMode: {
+			type: Boolean,
+			default: isDevelopmentMode(),
+		},
+		// createdAt: {
+		// 	type: Date,
+		// 	default: Date.now,
+		// },
+		// updatedAt: {
+		// 	type: Date,
+		// 	default: Date.now,
+		// },
 	},
-	lastName: {
-		type: String,
-		required: true,
-		lowercase: true,
-		trim: true,
-		minLength: 5,
-		maxLength: 50,
-	},
-	username: {
-		type: String,
-		required: true,
-		lowercase: true,
-		trim: true,
-		minLength: 5,
-		maxLength: 50,
-		unique: true,
-	},
-	email: {
-		type: String,
-		required: true,
-		unique: true,
-		trim: true,
-		lowercase: true,
-		maxLength: 255,
-	},
-	password: {
-		type: String,
-		required: true,
-		minLength: 8,
-		maxLength: 1024,
-	},
-	isDevelopmentMode: {
-		type: Boolean,
-		default: isDevelopmentMode(),
-	},
-});
+	{ timestamps: true }
+);
 
 userSchema.methods.generateAccessToken = function () {
 	const token = jwt.sign(

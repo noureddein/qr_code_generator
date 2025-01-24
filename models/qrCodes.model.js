@@ -68,54 +68,57 @@ const qrDataSchema = new mongoose.Schema({
 	// Add additional fields for qrData if necessary
 });
 
-const qrCodesSchema = new mongoose.Schema({
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		required: true,
-		ref: "User",
+const qrCodesSchema = new mongoose.Schema(
+	{
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: "User",
+		},
+		qrData: {
+			type: Object,
+			required: true,
+		},
+		qrDesign: {
+			type: qrDesignSchema,
+			required: true,
+		},
+		type: {
+			type: String,
+			required: true,
+			enum: [...Object.values(QR_CODE_TYPE)],
+		},
+		image: {
+			type: String,
+			required: true,
+		},
+		nanoId: {
+			type: String,
+			required: true,
+		},
+		publicLink: {
+			type: String,
+			required: true,
+		},
+		isActive: {
+			type: Boolean,
+			default: true,
+		},
+		isDevelopmentMode: {
+			type: Boolean,
+			default: isDevelopmentMode(),
+		},
+		// createdAt: {
+		// 	type: Date,
+		// 	default: Date.now,
+		// },
+		// updatedAt: {
+		// 	type: Date,
+		// 	default: Date.now,
+		// },
 	},
-	qrData: {
-		type: Object,
-		required: true,
-	},
-	qrDesign: {
-		type: qrDesignSchema,
-		required: true,
-	},
-	type: {
-		type: String,
-		required: true,
-		enum: [...Object.values(QR_CODE_TYPE)],
-	},
-	image: {
-		type: String,
-		required: true,
-	},
-	nanoId: {
-		type: String,
-		required: true,
-	},
-	publicLink: {
-		type: String,
-		required: true,
-	},
-	isActive: {
-		type: Boolean,
-		default: true,
-	},
-	isDevelopmentMode: {
-		type: Boolean,
-		default: isDevelopmentMode(),
-	},
-	createdAt: {
-		type: Date,
-		default: Date.now,
-	},
-	updatedAt: {
-		type: Date,
-		default: Date.now,
-	},
-});
+	{ timestamps: true }
+);
 
 const QrCodes = mongoose.model("QrCodes", qrCodesSchema);
 

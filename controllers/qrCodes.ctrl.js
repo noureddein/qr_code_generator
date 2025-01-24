@@ -3,6 +3,7 @@ const {
 	appEnv,
 	DEFAULT_QR_DATA,
 	SORT_KEYS,
+	STORAGE_FOLDERS_NAME,
 } = require("../constants");
 const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
@@ -344,7 +345,7 @@ async function getOneQRCodeDesign(req, res) {
 		"qrDesign image"
 	);
 
-	const icons = await fetchResources();
+	const icons = await fetchResources(STORAGE_FOLDERS_NAME.ICONS);
 
 	const iconsUrl = icons.resources.map((icon) => icon.secure_url);
 

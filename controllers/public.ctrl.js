@@ -1,6 +1,7 @@
 const { QrCodes } = require("../models/qrCodes.model");
 const useragent = require("useragent");
 const axios = require("axios");
+const { Statistics } = require("../models/statistics.model");
 async function getOne(req, res) {
 	const { nanoId } = req.params;
 
@@ -15,7 +16,7 @@ async function getOne(req, res) {
 	const geoResponse = await axios.get(`http://ip-api.com/json/${clientIP}`);
 	const locationData = geoResponse.data;
 
-	console.log({
+	const statisticsData = {
 		location: {
 			country: locationData.country,
 			city: locationData.city,
@@ -25,14 +26,23 @@ async function getOne(req, res) {
 			ip: clientIP,
 		},
 		device: {
-			os: agent.os.toString(),
-			browser: agent.toAgent(),
+			os: agent.os.family,
+			browser: agent.device.family,
 			device: agent.device.toString(),
 		},
-	});
+	};
+
+	console.log(statisticsData);
 	const result = await QrCodes.findOne({ nanoId }).select(
 		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
 	);
+
+	const statistics = new Statistics({
+		...statisticsData.device,
+		...statisticsData.location,
+	});
+
+	await statistics.save();
 
 	if (!result) {
 		return res.status(404).json({ message: "QR Code not found" });
