@@ -4,6 +4,10 @@ const { QrCodes } = require("../models/qrCodes.model");
 async function getOne(req, res) {
 	const { nanoId } = req.params;
 
+	const ip =
+		req.headers["x-forwarded-for"] || // Use this if behind a proxy like AWS, Netlify, etc.
+		req.connection.remoteAddress; // Fallback to direct IP
+	console.log({ ip });
 	const result = await QrCodes.findOne({ nanoId }).select(
 		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
 	);
