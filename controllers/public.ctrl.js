@@ -15,7 +15,21 @@ async function getOne(req, res) {
 	const geoResponse = await axios.get(`http://ip-api.com/json/${clientIP}`);
 	const locationData = geoResponse.data;
 
-	console.log({ clientIP, agent, locationData });
+	console.log({
+		location: {
+			country: locationData.country,
+			city: locationData.city,
+			region: locationData.regionName,
+			latitude: locationData.lat,
+			longitude: locationData.lon,
+			ip: clientIP,
+		},
+		device: {
+			os: agent.os.toString(),
+			browser: agent.toAgent(),
+			device: agent.device.toString(),
+		},
+	});
 	const result = await QrCodes.findOne({ nanoId }).select(
 		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
 	);
