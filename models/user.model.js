@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const { REFRESH_TOKEN_EXPIRY_IN_SECONDS } = require("../constants");
+const { isDevelopmentMode } = require("../lib/envMode.lib");
 
 /* 
     We can use joi-password-complexity package to check password complexity
@@ -47,6 +48,10 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		minLength: 8,
 		maxLength: 1024,
+	},
+	isDevelopmentMode: {
+		type: Boolean,
+		default: isDevelopmentMode(),
 	},
 });
 

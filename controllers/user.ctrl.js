@@ -1,7 +1,6 @@
 const { User } = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const config = require("config");
-const _omit = require("lodash/omit");
 const _pick = require("lodash/pick");
 const { REFRESH_TOKEN_EXPIRY_IN_MILLISECOND } = require("../constants");
 

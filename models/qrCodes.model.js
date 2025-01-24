@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-const { QR_CODE_TYPE } = require("../constants");
+const { QR_CODE_TYPE, appEnv } = require("../constants");
+const isBase64 = require("is-base64");
+const { isDevelopmentMode } = require("../lib/envMode.lib");
 
 const qrDesignSchema = new mongoose.Schema({
 	colorDark: {
@@ -36,6 +38,20 @@ const qrDesignSchema = new mongoose.Schema({
 			},
 			message: (props) =>
 				`Dots must be a floating-point number between 0.1 and 1.0. Got: ${props.value}`,
+		},
+	},
+	logoBase64: {
+		type: String,
+		default: "",
+		validate: {
+			validator: function (value) {
+				if (value)
+					return isBase64(value, {
+						allowMime: true,
+						mimeRequired: true,
+					});
+			},
+			message: (props) => `Invalid base64 logo.`,
 		},
 	},
 });
@@ -86,6 +102,10 @@ const qrCodesSchema = new mongoose.Schema({
 	isActive: {
 		type: Boolean,
 		default: true,
+	},
+	isDevelopmentMode: {
+		type: Boolean,
+		default: isDevelopmentMode(),
 	},
 	createdAt: {
 		type: Date,

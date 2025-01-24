@@ -15,7 +15,7 @@ router.post(
 	"/save/pdf",
 	[
 		upload.single("file"),
-		validatePDFFile,
+		validatePDFFile("file"),
 		validation.qrCodes.savePDF,
 		validateRequest,
 	],
@@ -62,7 +62,7 @@ router.put(
 	"/pdf/:id",
 	[
 		upload.single("file"),
-		validatePDFFile,
+		validatePDFFile("file"),
 		validation.qrCodes.updateOnePDF,
 		validateRequest,
 	],
@@ -71,7 +71,12 @@ router.put(
 
 router.put(
 	"/design/:id",
-	[validation.qrCodes.updateOneQRCodeDesign, validateRequest],
+	[
+		upload.single("logo"),
+		validatePDFFile("logo"),
+		validation.qrCodes.updateOneQRCodeDesign,
+		validateRequest,
+	],
 	qrCodesController.updateOneQRCodeDesign
 );
 

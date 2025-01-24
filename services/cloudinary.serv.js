@@ -17,10 +17,21 @@ const opts = {
 	folder: "qr_code",
 	resource_type: "image",
 	type: "upload",
-	format: "pdf",
 };
 
 const fileUploader = async (file) => {
+	try {
+		const response = await cloudinary.uploader.upload(file, {
+			...opts,
+			format: "pdf",
+		});
+		return response;
+	} catch (error) {
+		throw error;
+	}
+};
+
+const imageUploader = async (file) => {
 	try {
 		const response = await cloudinary.uploader.upload(file, opts);
 		return response;
@@ -42,5 +53,20 @@ const deleteUploadedFile = async (publicId) => {
 	}
 };
 
+const fetchResources = async (folder) => {
+	try {
+		const response = await cloudinary.api.resources({
+			type: "upload",
+			folder: "qr_code_icons",
+		});
+		return response;
+	} catch (error) {
+		console.error("Error fetching files:", error);
+		throw error;
+	}
+};
+
 module.exports.fileUploader = fileUploader;
 module.exports.deleteUploadedFile = deleteUploadedFile;
+module.exports.imageUploader = imageUploader;
+module.exports.fetchResources = fetchResources;

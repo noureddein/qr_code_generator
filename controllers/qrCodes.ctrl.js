@@ -11,9 +11,12 @@ const { customAlphabet } = require("nanoid");
 const {
 	fileUploader,
 	deleteUploadedFile,
+	imageUploader,
+	fetchResources,
 } = require("../services/cloudinary.serv");
 const _omit = require("lodash/omit");
 const { removeUploadedFiles } = require("../services/removeFiles.ser");
+const { isDevelopmentMode } = require("../lib/envMode.lib");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
@@ -137,6 +140,7 @@ async function getMany(req, res) {
 	}
 	const rows = await QrCodes.find({
 		userId: _id,
+		isDevelopmentMode: isDevelopmentMode(),
 		...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
 		...(!!filterBy && { type }),
 	}).sort(sortBy);
@@ -166,9 +170,11 @@ async function getOne(req, res) {
 	const { _id: userId } = req.user;
 	const { id: paramId } = req.params;
 
-	const qrCode = await QrCodes.findOne({ _id: paramId, userId }).select(
-		"-__v"
-	);
+	const qrCode = await QrCodes.findOne({
+		_id: paramId,
+		userId,
+		isDevelopmentMode: isDevelopmentMode(),
+	}).select("-__v");
 
 	if (!qrCode) {
 		return res.status(404).json({ message: "QR Code not found." });
@@ -281,8 +287,15 @@ async function vCardUpdateOne(req, res) {
 async function updateOneQRCodeDesign(req, res) {
 	const { _id: userId } = req.user;
 	const { id } = req.params;
-	const { colorDark, colorLight, quietZoneColor, size, dots, quietZone } =
-		req.body;
+	const {
+		colorDark,
+		colorLight,
+		quietZoneColor,
+		size,
+		dots,
+		quietZone,
+		logoBase64,
+	} = req.body;
 
 	const qrCode = await QrCodes.findOne({ _id: id, userId }).select(
 		"qrDesign publicLink"
@@ -296,6 +309,10 @@ async function updateOneQRCodeDesign(req, res) {
 			size,
 			dots,
 			quietZone,
+			logoBase64:
+				logoBase64 === "" || logoBase64
+					? logoBase64
+					: qrCode.qrDesign.logoBase64,
 		},
 		text: qrCode.publicLink,
 	});
@@ -308,6 +325,10 @@ async function updateOneQRCodeDesign(req, res) {
 			size,
 			dots,
 			quietZone,
+			logoBase64:
+				logoBase64 === "" || logoBase64
+					? logoBase64
+					: qrCode.qrDesign.logoBase64,
 		},
 		image,
 	});
@@ -323,18 +344,32 @@ async function getOneQRCodeDesign(req, res) {
 		"qrDesign image"
 	);
 
-	return res
-		.status(200)
-		.json({ qrCodeDesign: qrCode.qrDesign, image: qrCode.image });
+	const icons = await fetchResources();
+
+	const iconsUrl = icons.resources.map((icon) => icon.secure_url);
+
+	return res.status(200).json({
+		qrCodeDesign: qrCode.qrDesign,
+		image: qrCode.image,
+		icons: iconsUrl,
+	});
 }
 
 async function qrCodeDesignGenerate(req, res) {
 	const { _id: userId } = req.user;
-	const { id, colorDark, colorLight, quietZoneColor, size, dots, quietZone } =
-		req.body;
-
+	const {
+		id,
+		colorDark,
+		colorLight,
+		quietZoneColor,
+		size,
+		dots,
+		quietZone,
+		logoBase64,
+	} = req.body;
+	console.log({ logoBase64 });
 	const qrCode = await QrCodes.findOne({ _id: id, userId }).select(
-		"qrData publicLink"
+		"qrData publicLink qrDesign"
 	);
 	const image = await generator({
 		optionsProps: {
@@ -344,6 +379,10 @@ async function qrCodeDesignGenerate(req, res) {
 			size,
 			dots,
 			quietZone,
+			logoBase64:
+				logoBase64 === "" || logoBase64
+					? logoBase64
+					: qrCode.qrDesign.logoBase64,
 		},
 		text: qrCode.publicLink,
 	});
@@ -357,6 +396,7 @@ async function qrCodeDesignGenerate(req, res) {
 			size,
 			dots,
 			quietZone,
+			logoBase64: logoBase64 === "" ? "" : qrCode.qrDesign.logoBase64,
 		},
 	});
 }
