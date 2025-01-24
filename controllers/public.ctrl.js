@@ -1,18 +1,21 @@
 const { QrCodes } = require("../models/qrCodes.model");
 const useragent = require("useragent");
-
+const axios = require("axios");
 async function getOne(req, res) {
 	const { nanoId } = req.params;
 
-	const ip =
-		req.headers["x-forwarded-for"] || // Use this if behind a proxy like AWS, Netlify, etc.
-		req.connection.remoteAddress; // Fallback to direct IP
+	const clientIP =
+		req.headers["x-forwarded-for"]?.split(",")[0] ||
+		req.connection.remoteAddress;
 
 	const userAgentString = req.headers["user-agent"]; // e.g., "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
-	console.log({ userAgentString });
 	const agent = useragent.parse(userAgentString);
 
-	console.log({ ip, agent });
+	// Get location based on IP
+	const geoResponse = await axios.get(`http://ip-api.com/json/${clientIP}`);
+	const locationData = geoResponse.data;
+
+	console.log({ clientIP, agent, locationData });
 	const result = await QrCodes.findOne({ nanoId }).select(
 		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
 	);
