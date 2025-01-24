@@ -7,6 +7,8 @@ const passport = require("passport");
 const PORT = process.env.PORT || config.get("port");
 const app = express();
 
+app.set("trust proxy", true);
+
 require("./startup/passport");
 require("./startup/middleware")(app);
 require("./startup/logging")();

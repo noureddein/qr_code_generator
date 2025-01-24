@@ -1,5 +1,5 @@
-const { QR_CODE_TYPE, appEnv } = require("../constants");
 const { QrCodes } = require("../models/qrCodes.model");
+const useragent = require("useragent");
 
 async function getOne(req, res) {
 	const { nanoId } = req.params;
@@ -7,7 +7,12 @@ async function getOne(req, res) {
 	const ip =
 		req.headers["x-forwarded-for"] || // Use this if behind a proxy like AWS, Netlify, etc.
 		req.connection.remoteAddress; // Fallback to direct IP
-	console.log({ ip });
+
+	const userAgentString = req.headers["user-agent"]; // e.g., "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+	console.log({ userAgentString });
+	const agent = useragent.parse(userAgentString);
+
+	console.log({ ip, agent });
 	const result = await QrCodes.findOne({ nanoId }).select(
 		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
 	);
