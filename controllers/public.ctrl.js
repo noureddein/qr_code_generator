@@ -9,6 +9,7 @@ async function getOne(req, res) {
 		req.headers["x-forwarded-for"]?.split(",")[0] ||
 		req.connection.remoteAddress;
 
+	console.log({ clientIP });
 	const userAgentString = req.headers["user-agent"]; // e.g., "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
 	const agent = useragent.parse(userAgentString);
 
