@@ -5,20 +5,17 @@ const {
 	SORT_KEYS,
 	STORAGE_FOLDERS_NAME,
 } = require("../constants");
-const { createVCard } = require("../lib/cards");
 const { QrCodes } = require("../models/qrCodes.model");
 const { generator } = require("../lib/qrCodeGenerator.lib");
 const { customAlphabet } = require("nanoid");
 const {
 	fileUploader,
 	deleteUploadedFile,
-	imageUploader,
 	fetchResources,
 } = require("../services/cloudinary.serv");
 const _omit = require("lodash/omit");
 const { removeUploadedFiles } = require("../services/removeFiles.ser");
 const { isDevelopmentMode } = require("../lib/envMode.lib");
-const { Statistics } = require("../models/statistics.model");
 const mongoose = require("mongoose");
 
 const DOMAIN =
@@ -119,7 +116,7 @@ async function save(req, res) {
 
 async function getMany(req, res) {
 	const { _id } = req.user;
-	const { q = "", sort = "", type = "" } = req.query;
+	const { q = "", sort = "", type = "", page = 1 } = req.query;
 
 	let sortBy = {};
 	let filterBy = Object.values(QR_CODE_TYPE).includes(type) ? type : null;
@@ -141,12 +138,12 @@ async function getMany(req, res) {
 			sortBy = { createdAt: -1 }; // Default case
 			break;
 	}
-	// const rows = await QrCodes.find({
-	// 	userId: _id,
-	// 	isDevelopmentMode: isDevelopmentMode(),
-	// 	...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
-	// 	...(!!filterBy && { type }),
-	// }).sort(sortBy);
+
+	const RECORDS_PER_PAGE = 5;
+	const pagination = {
+		skip: (page - 1) * RECORDS_PER_PAGE,
+		limit: RECORDS_PER_PAGE,
+	};
 
 	const [result] = await QrCodes.aggregate([
 		{
@@ -192,7 +189,10 @@ async function getMany(req, res) {
 		{
 			$facet: {
 				count: [{ $count: "total_records" }],
-				records: [],
+				records: [
+					{ $skip: pagination.skip },
+					{ $limit: pagination.limit },
+				],
 			},
 		},
 	]);

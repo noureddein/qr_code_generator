@@ -46,6 +46,13 @@ const getMany = checkSchema({
 			options: "",
 		},
 	},
+	page: {
+		in: ["query"],
+		optional: true,
+		isInt: {
+			errorMessage: "Invalid page number.",
+		},
+	},
 });
 
 const deleteOne = checkSchema({
