@@ -5,7 +5,6 @@ const { REFRESH_TOKEN_EXPIRY_IN_MILLISECOND } = require("../constants/index");
 const _pick = require("lodash/pick");
 const jwt = require("jsonwebtoken");
 
-const SALT_ROUNDS = config.get("salt_rounds");
 const refresh_secret_key = config.get("refresh_secret_key");
 
 async function login(req, res) {

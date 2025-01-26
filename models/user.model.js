@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 // const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const config = require("config");
-const { REFRESH_TOKEN_EXPIRY_IN_SECONDS } = require("../constants");
+const {
+	REFRESH_TOKEN_EXPIRY_IN_SECONDS,
+	ACCESS_TOKEN_EXPIRY_IN_SECONDS,
+} = require("../constants");
 const { isDevelopmentMode } = require("../lib/envMode.lib");
 
 /* 
@@ -74,7 +77,7 @@ userSchema.methods.generateAccessToken = function () {
 		},
 		config.get("access_secret_key"),
 		{
-			expiresIn: 120,
+			expiresIn: ACCESS_TOKEN_EXPIRY_IN_SECONDS,
 		}
 	);
 	return token;

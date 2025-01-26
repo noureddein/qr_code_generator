@@ -20,6 +20,19 @@ async function getOne(req, res) {
 	const geoResponse = await axios.get(`http://ip-api.com/json/${clientIP}`);
 	const locationData = geoResponse.data;
 
+	// TODO: Do not add statistics if the qr code is inactive.
+	const qrCodeRecord = await QrCodes.findOne({ nanoId }).select(
+		"-qrDesign -__v -userId -createdAt -updatedAt"
+	);
+
+	if (!qrCodeRecord) {
+		return res.status(404).json({ message: "QR Code not found" });
+	}
+
+	if (!qrCodeRecord.isActive) {
+		return res.status(403).json({ message: "Currently is in active." });
+	}
+
 	const statisticsData = {
 		location: {
 			country: locationData.country,
@@ -37,26 +50,16 @@ async function getOne(req, res) {
 	};
 
 	console.log(statisticsData);
-	const result = await QrCodes.findOne({ nanoId }).select(
-		"-qrDesign -__v -userId -_id -createdAt -updatedAt"
-	);
 
 	const statistics = new Statistics({
+		qrCodeId: qrCodeRecord._id,
 		...statisticsData.device,
 		...statisticsData.location,
 	});
 
 	await statistics.save();
 
-	if (!result) {
-		return res.status(404).json({ message: "QR Code not found" });
-	}
-
-	if (!result.isActive) {
-		return res.status(403).json({ message: "Currently is in active." });
-	}
-
-	return res.status(200).json({ row: result });
+	return res.status(200).json({ row: qrCodeRecord });
 }
 
 module.exports = {

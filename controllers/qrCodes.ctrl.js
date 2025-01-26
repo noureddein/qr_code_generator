@@ -18,6 +18,8 @@ const {
 const _omit = require("lodash/omit");
 const { removeUploadedFiles } = require("../services/removeFiles.ser");
 const { isDevelopmentMode } = require("../lib/envMode.lib");
+const { Statistics } = require("../models/statistics.model");
+const mongoose = require("mongoose");
 
 const DOMAIN =
 	process.env.NODE_ENV === appEnv.PRODUCTION
@@ -139,13 +141,66 @@ async function getMany(req, res) {
 			sortBy = { createdAt: -1 }; // Default case
 			break;
 	}
-	const rows = await QrCodes.find({
-		userId: _id,
-		isDevelopmentMode: isDevelopmentMode(),
-		...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
-		...(!!filterBy && { type }),
-	}).sort(sortBy);
-	return res.status(200).json({ rows });
+	// const rows = await QrCodes.find({
+	// 	userId: _id,
+	// 	isDevelopmentMode: isDevelopmentMode(),
+	// 	...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
+	// 	...(!!filterBy && { type }),
+	// }).sort(sortBy);
+
+	const [result] = await QrCodes.aggregate([
+		{
+			$match: {
+				userId: new mongoose.Types.ObjectId(_id),
+				isDevelopmentMode: isDevelopmentMode(),
+				...(!!q && { "qrData.name": { $regex: q, $options: "i" } }),
+				...(!!filterBy && { type }),
+			},
+		},
+		{
+			$sort: sortBy,
+		},
+
+		{
+			$lookup: {
+				from: "statistics",
+				localField: "_id",
+				foreignField: "qrCodeId",
+				as: "scans",
+			},
+		},
+
+		{
+			$addFields: {
+				scanCount: { $size: "$scans" },
+			},
+		},
+		{
+			$project: {
+				qrData: {
+					name: 1,
+				},
+				type: 1,
+				image: 1,
+				publicLink: 1,
+				isActive: 1,
+				createdAt: 1,
+				updatedAt: 1,
+				scanCount: 1,
+			},
+		},
+		{
+			$facet: {
+				count: [{ $count: "total_records" }],
+				records: [],
+			},
+		},
+	]);
+
+	return res.status(200).json({
+		rows: result.records,
+		count: result.count[0]?.total_records || 0,
+	});
 }
 
 async function deleteOne(req, res) {

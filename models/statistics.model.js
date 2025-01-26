@@ -20,6 +20,11 @@ const { isDevelopmentMode } = require("../lib/envMode.lib");
 // 		},
 const statisticsSchema = new mongoose.Schema(
 	{
+		qrCodeId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: "QrCodes",
+		},
 		country: { type: String, default: "", trim: true },
 		city: { type: String, default: "", trim: true },
 		region: { type: String, default: "", trim: true },
