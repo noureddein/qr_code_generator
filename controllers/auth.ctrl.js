@@ -28,7 +28,7 @@ async function login(req, res) {
 		// secure: process.env.NODE_ENV === "production",
 		// sameSite: "strict",
 		secure: true,
-		sameSite: "none",
+		sameSite: "None",
 	});
 
 	return res.status(200).send({
